@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const { check, validationResult } = require("express-validator");
+
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const storage = multer.memoryStorage();
@@ -6,10 +8,19 @@ const storage = multer.memoryStorage();
 exports.upload = multer({ storage: storage });
 
 exports.signup = (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ error: "please fill all details correctly" });
+  }
   User.findOne({ email: req.body.email }, (err, user) => {
-    if (err || user) {
+    if (err) {
       return res.status(400).json({
-        err: "Either server error or account alreadt exists",
+        error: "Error in sigup! please try again.",
+      });
+    }
+    if (user) {
+      return res.status(400).json({
+        error: "Account with this email already exists!",
       });
     }
     const rawUser = {};
@@ -41,17 +52,21 @@ exports.signup = (req, res) => {
       .catch((err) => {
         console.log(err.message);
         res.status(400).json({
-          err: "error in saving a user",
+          err: "Error in sigup! please try again.",
         });
       });
   });
 };
 
 exports.signin = (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ error: "Email or Password are incorrect!" });
+  }
   User.findOne({ email: req.body.email }, (err, user) => {
     if (err || !user) {
       return res.status(400).json({
-        err: "User does not exist",
+        error: "User does not exist",
       });
     }
 
@@ -65,7 +80,7 @@ exports.signin = (req, res) => {
       jwt.sign(payload, process.env.SECRET, (err, token) => {
         if (err) {
           return res.status(400).json({
-            err: "error in assigning a token",
+            error: "Error in signin! please try again.",
           });
         } else {
           res.status(200).json({
@@ -77,7 +92,7 @@ exports.signin = (req, res) => {
     } else {
       return res.status(400).json({
         msg: "custom",
-        err: "email and password doesnot match",
+        error: "email and password does not match!",
       });
     }
   });

@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const mongoose = require("mongoose");
+const { check, validationResult } = require("express-validator");
 
 exports.getUserById = (req, res, next, userId) => {
   User.findById(userId)
@@ -37,6 +38,10 @@ exports.getProfilePic = (req, res) => {
 };
 
 exports.updateUser = (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ error: errors.array() });
+  }
   let updateduser = {};
   if (!req.body.name && req.profile.name) {
     updateduser.name = req.profile.name;

@@ -1,5 +1,5 @@
 require("dotenv").config();
-
+const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
@@ -13,8 +13,9 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 //Connecting to the DB
 
+console.log(process.env.DATABASE);
 mongoose
-  .connect("mongodb://localhost:27017/mernstack", {
+  .connect(process.env.DATABASE, {
     useNewUrlParser: true,
     useFindAndModify: true,
     useUnifiedTopology: true,
@@ -36,6 +37,10 @@ app.use(cors());
 app.use("/api", authRoutes);
 app.use("/api", userRoutes);
 
+app.use(express.static(path.join(__dirname, "client", "build")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+});
 app.listen(5000, () => {
   console.log("Server is running at 5000");
 });

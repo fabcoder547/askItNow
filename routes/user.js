@@ -1,4 +1,5 @@
 const express = require("express");
+const { check, validationResult } = require("express-validator");
 const router = express.Router();
 const {
   getUserById,
@@ -12,6 +13,8 @@ router.param("userId", getUserById);
 router.get("/profile/:userId", isSignedin, isAuthenticated, getUser);
 router.get(
   "/profile/photo/:userId",
+  [check("email").isEmail()],
+
   isSignedin,
   isAuthenticated,
   getProfilePic
